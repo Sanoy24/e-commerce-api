@@ -1,9 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
+@Injectable()
 export class SecurityService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) {}
+  logger = new Logger(SecurityService.name);
 
   async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
@@ -13,8 +15,14 @@ export class SecurityService {
     return await bcrypt.compare(password, hash);
   }
 
-  async generateToken(payload: Record<string, any>): Promise<string> {
-    return this.jwtService.sign(payload);
+  async generateToken(
+    payload: Record<string, any>,
+  ): Promise<{ accessToken: string }> {
+    const token = await this.jwtService.signAsync(payload);
+    this.logger.debug(
+      `Generated JWT token for payload: ${JSON.stringify(payload)}`,
+    );
+    return { accessToken: token };
   }
 
   // 🧾 Verify JWT token (optional helper)

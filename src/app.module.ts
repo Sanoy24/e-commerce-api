@@ -11,14 +11,16 @@ import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    CommonModule,
+    ConfigModule.forRoot({
+      // ← Move this to the top
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    CommonModule, // ← Now JwtModule sees the loaded env
     PrismaModule,
     UsersModule,
     ProductsModule,
     OrdersModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
     AuthModule,
   ],
   controllers: [AppController],
