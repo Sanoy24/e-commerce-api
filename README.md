@@ -1,8 +1,8 @@
-# 🛒 E-Commerce API
+# E-Commerce API
 
 A robust, scalable RESTful API built with NestJS for e-commerce applications. Features include user authentication, product management, order processing, and comprehensive API documentation.
 
-## 🚀 Features
+## Features
 
 - **Authentication & Authorization**: JWT-based authentication with role-based access control (Admin/Customer)
 - **User Management**: User registration, login, and profile management
@@ -14,7 +14,7 @@ A robust, scalable RESTful API built with NestJS for e-commerce applications. Fe
 - **Security**: Password hashing, input validation, and error handling
 - **Testing**: Unit and integration tests with Jest
 
-## 🏗️ Architecture
+## Architecture
 
 This project follows a modular architecture pattern with clear separation of concerns:
 
@@ -29,28 +29,28 @@ src/
 └── main.ts         # Application entry point
 ```
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework**: [NestJS](https://nestjs.com/) - Progressive Node.js framework
 - **Database**: PostgreSQL with [Prisma ORM](https://www.prisma.io/)
-- **Authentication**: JWT with [Passport](http://www.passportjs.org/)
+- **Authentication**: JWT
 - **Validation**: [class-validator](https://github.com/typestack/class-validator) & [class-transformer](https://github.com/typestack/class-transformer)
 - **Documentation**: [Swagger](https://swagger.io/) with [@nestjs/swagger](https://docs.nestjs.com/openapi/introduction)
 - **Testing**: [Jest](https://jestjs.io/) with [Supertest](https://github.com/visionmedia/supertest)
 - **Development**: TypeScript, ESLint, Prettier
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js (v18 or higher)
 - PostgreSQL (v15 or higher)
 - Docker & Docker Compose (optional)
 
-## 🔧 Installation & Setup
+## Installation & Setup
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Sanoy24/e-commerce-api.git
 cd e-commerce-api
 ```
 
@@ -66,15 +66,20 @@ Create a `.env` file in the root directory:
 
 ```env
 # Database
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ecommerce_db"
+DATABASE_URL="postgresql://<user>:<your password>@<host>:5432/ecommerce_db"
+or
+DATABASE_URL="postgresql://postgres:postgres@db:5432/ecommerce_db" for docker setup
+
 
 # Application
 PORT=3000
-NODE_ENV=development
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=7d
+
+SALT_VALUE=10
+
 ```
 
 ### 4. Database Setup
@@ -118,6 +123,27 @@ docker-compose logs -f api
 docker-compose down
 ```
 
+### Default Seeded Users
+
+- When using Docker for setup, the application automatically seeds two users into the database:
+
+1. Admin user
+   {
+   "email": "admin@example.com",
+   "password": "Admin@123",
+   "username": "admin",
+   "role": "ADMIN"
+   }
+
+2. Customer user
+   {
+   "email":"test@example.com"
+   "password:"Pass@123"
+   "username":"Uuser1"
+   "role":"CUSTOMER
+
+   }
+
 ## 📚 API Documentation
 
 Once the application is running, access the interactive API documentation:
@@ -138,13 +164,6 @@ Once the application is running, access the interactive API documentation:
 - `POST /auth/register` - Register new user
 - `POST /auth/login` - User login
 
-### Users
-
-- `GET /users` - Get all users (Admin only)
-- `GET /users/:id` - Get user by ID
-- `PUT /users/:id` - Update user
-- `DELETE /users/:id` - Delete user
-
 ### Products
 
 - `GET /products` - Get all products
@@ -156,9 +175,11 @@ Once the application is running, access the interactive API documentation:
 ### Orders
 
 - `GET /orders` - Get user orders
-- `GET /orders/:id` - Get order by ID
 - `POST /orders` - Create new order
-- `PUT /orders/:id` - Update order status
+
+### upload
+
+- `POST /uploads` - upload product image
 
 ## 🧪 Testing
 
@@ -175,6 +196,37 @@ npm run test:e2e
 # Watch mode
 npm run test:watch
 ```
+
+### Run Tests Locally
+
+- Prepare database (only needed for tests that hit the DB):
+  - Start local Postgres or run `docker compose up -d db`.
+  - Ensure `.env` has a valid `DATABASE_URL`, e.g. `postgresql://postgres:postgres@localhost:5432/ecommerce_db`.
+- Commands:
+  - Unit tests: `npm run test`
+  - Coverage: `npm run test:cov`
+  - E2E tests: `npm run test:e2e`
+  - Watch mode: `npm run test:watch`
+
+### Run Tests in Docker
+
+- Bring up the stack: `docker compose up -d`.
+- Ensure `.env` uses the Compose network host for DB:
+  - `DATABASE_URL="postgresql://postgres:postgres@db:5432/ecommerce_db"`
+- Inside the running API container:
+  - Unit tests: `docker compose exec api npm run test`
+  - E2E tests: `docker compose exec api npm run test:e2e`
+- One-off test container (clean environment):
+  - Unit tests: `docker compose run --rm api sh -c "npm ci && npm run test"`
+  - E2E tests: `docker compose run --rm api sh -c "npm ci && npm run test:e2e"`
+- Optional DB reset/seed before E2E:
+  - `docker compose exec api npx prisma migrate reset --force`
+  - `docker compose exec api npx prisma db seed`
+
+Notes:
+
+- The Compose service is named `api` and depends on the `db` service being healthy.
+- The stack seeds the database on startup via `npx prisma db seed` in the API command.
 
 ## 🗄️ Database Schema
 
@@ -216,7 +268,7 @@ npm run test:watch
 ## 🔒 Security Features
 
 - **Password Hashing**: Bcrypt for secure password storage
-- **JWT Authentication**: Stateless authentication with refresh token support
+- **JWT Authentication**: Stateless authentication
 - **Input Validation**: Comprehensive validation using class-validator
 - **Error Handling**: Centralized error handling with custom filters
 - **CORS Protection**: Configurable CORS policies
