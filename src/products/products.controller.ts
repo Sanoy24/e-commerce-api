@@ -107,9 +107,9 @@ export class ProductsController {
 
   @Get()
   @ApiOperation({
-    summary: 'Get a list of all products',
+    summary: 'Get a list of all products with advanced filtering',
     description:
-      'Retrieves a paginated list of products, with optional search by name (case-insensitive partial match). Public endpoint, no authentication required.',
+      'Retrieves a paginated list of products with advanced search and filtering capabilities.',
   })
   @ApiQuery({
     name: 'page',
@@ -127,8 +127,49 @@ export class ProductsController {
     name: 'search',
     required: false,
     type: String,
-    description:
-      'Search term for product name (case-insensitive, partial match). If empty or omitted, returns all products.',
+    description: 'Search term for product name (case-insensitive)',
+  })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    type: String,
+    description: 'Filter by specific category',
+  })
+  @ApiQuery({
+    name: 'categories',
+    required: false,
+    type: String,
+    description: 'Filter by multiple categories (comma-separated)',
+  })
+  @ApiQuery({
+    name: 'minPrice',
+    required: false,
+    type: Number,
+    description: 'Minimum price filter',
+  })
+  @ApiQuery({
+    name: 'maxPrice',
+    required: false,
+    type: Number,
+    description: 'Maximum price filter',
+  })
+  @ApiQuery({
+    name: 'stockStatus',
+    required: false,
+    enum: ['in-stock', 'out-of-stock', 'low-stock'],
+    description: 'Filter by stock status',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: ['name', 'price', 'stock', 'createdAt'],
+    description: 'Field to sort by',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: ['asc', 'desc'],
+    description: 'Sort order',
   })
   @ApiResponse({
     status: 200,

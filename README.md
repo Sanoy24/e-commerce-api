@@ -143,10 +143,10 @@ docker-compose down
 
 ```bash
    {
-   "email":"test@example.com",
-   "password:"Pass@123",
-   "username":"user1",
-   "role":"CUSTOMER"
+   "email": "test@example.com",
+   "password": "Pass@123",
+   "username": "user1",
+   "role": "CUSTOMER"
    }
 ```
 

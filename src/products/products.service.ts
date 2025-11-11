@@ -64,35 +64,107 @@ export class ProductsService {
     return createResponse('Product Updated Succssfully', product);
   }
 
+  // products.service.ts
   async findAll({
     page = 1,
     limit = 10,
     search,
+    category,
+    categories,
+    minPrice,
+    maxPrice,
+    stockStatus,
+    sortBy = 'name',
+    sortOrder = 'asc',
   }: PaginationQueryDto): Promise<PaginatedResponseDto> {
-    const where =
-      search && search.trim()
-        ? { name: { contains: search.trim().toLowerCase() } } // , mode: 'insensitive' does not work on sqlite
-        : {};
+    // Build where condition
+    const where: any = { AND: [] };
+
+    // Text search
+    if (search?.trim()) {
+      where.AND.push({
+        name: {
+          contains: search.trim().toLowerCase(),
+          mode: 'insensitive', // Remove if using SQLite
+        },
+      });
+    }
+
+    // Category filter (single category)
+    if (category) {
+      where.AND.push({
+        category: {
+          equals: category,
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    // Multiple categories filter
+    if (categories) {
+      const categoryList = categories.split(',').map((cat) => cat.trim());
+      where.AND.push({
+        category: {
+          in: categoryList,
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    // Price range filter
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      const priceFilter: any = {};
+      if (minPrice !== undefined) priceFilter.gte = minPrice;
+      if (maxPrice !== undefined) priceFilter.lte = maxPrice;
+      where.AND.push({ price: priceFilter });
+    }
+
+    // Stock status filter
+    if (stockStatus) {
+      switch (stockStatus) {
+        case 'in-stock':
+          where.AND.push({ stock: { gt: 0 } });
+          break;
+        case 'out-of-stock':
+          where.AND.push({ stock: 0 });
+          break;
+        case 'low-stock':
+          where.AND.push({ stock: { lte: 10, gt: 0 } }); // Adjust threshold as needed
+          break;
+      }
+    }
+
+    // Remove empty AND array
+    if (where.AND.length === 0) {
+      delete where.AND;
+    }
 
     const skip = (page - 1) * limit;
+
+    // Build orderBy
+    const orderBy: any = {};
+    orderBy[sortBy] = sortOrder;
 
     const [products, totalSize] = await Promise.all([
       this.prisma.product.findMany({
         where,
         skip,
         take: limit,
+        orderBy,
         select: {
           id: true,
           name: true,
           price: true,
           stock: true,
           category: true,
+          createdAt: true, // Add if you want to sort by creation date
         },
       }),
       this.prisma.product.count({ where }),
     ]);
 
     const totalPages = Math.ceil(totalSize / limit);
+
     return createPaginatedResponse(
       'Products retrieved successfully',
       products,
