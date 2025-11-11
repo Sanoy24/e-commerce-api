@@ -1,40 +1,83 @@
-// src/products/dto/pagination-query.dto.ts
-import { IsOptional, IsNumber, Min, IsString } from 'class-validator';
+// advanced-product-query.dto.ts
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+  IsIn,
+  IsBoolean,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PaginationQueryDto {
-  @ApiPropertyOptional({
-    description: 'The page number to retrieve (defaults to 1)',
-    example: 1,
-    minimum: 1,
-  })
+  @ApiPropertyOptional({ description: 'Page number (defaults to 1)' })
   @IsOptional()
   @Type(() => Number)
-  @IsNumber({}, { message: 'Page must be a number' })
-  @Min(1, { message: 'Page must be at least 1' })
+  @IsNumber()
+  @Min(1)
   page?: number = 1;
 
   @ApiPropertyOptional({
-    description:
-      'The number of products per page (defaults to 10). Also accepts "pageSize" as alias.',
-    example: 10,
-    minimum: 1,
+    description: 'Number of products per page (defaults to 10)',
   })
   @IsOptional()
   @Type(() => Number)
-  @IsNumber({}, { message: 'Limit must be a number' })
-  @Min(1, { message: 'Limit must be at least 1' })
+  @IsNumber()
+  @Min(1)
   limit?: number = 10;
 
   @ApiPropertyOptional({
-    description:
-      'Search term for product name (case-insensitive partial match). If empty or not provided, returns all products.',
-    example: 'mouse',
+    description: 'Search term for product name (case-insensitive)',
   })
   @IsOptional()
   @IsString()
   search?: string;
 
-  // To support 'pageSize' as alias, handle in controller if needed
+  @ApiPropertyOptional({ description: 'Filter by category' })
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @ApiPropertyOptional({ description: 'Minimum price filter' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minPrice?: number;
+
+  @ApiPropertyOptional({ description: 'Maximum price filter' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  maxPrice?: number;
+
+  @ApiPropertyOptional({
+    description: 'Filter by stock availability',
+    enum: ['in-stock', 'out-of-stock', 'low-stock'],
+  })
+  @IsOptional()
+  @IsIn(['in-stock', 'out-of-stock', 'low-stock'])
+  stockStatus?: string;
+
+  @ApiPropertyOptional({
+    description: 'Sort field',
+    enum: ['name', 'price', 'stock', 'createdAt'],
+  })
+  @IsOptional()
+  @IsIn(['name', 'price', 'stock', 'createdAt'])
+  sortBy?: string = 'name';
+
+  @ApiPropertyOptional({ description: 'Sort order', enum: ['asc', 'desc'] })
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'asc';
+
+  @ApiPropertyOptional({
+    description: 'Filter by multiple categories (comma-separated)',
+  })
+  @IsOptional()
+  @IsString()
+  categories?: string;
 }
