@@ -1,17 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 
 describe('OrdersController', () => {
   let controller: OrdersController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [OrdersController],
-      providers: [OrdersService],
-    }).compile();
-
-    controller = module.get<OrdersController>(OrdersController);
+  beforeEach(() => {
+    const mockService: Partial<OrdersService> = {
+      createOrder: jest.fn(),
+      findUserOrders: jest.fn(),
+    };
+    controller = new OrdersController(mockService as OrdersService);
   });
 
   it('should be defined', () => {

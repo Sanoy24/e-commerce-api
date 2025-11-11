@@ -39,6 +39,7 @@ model Product {
   price       Float
   stock       Int
   category    String?
+  imageUrl    String?
 
   userId  String
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
