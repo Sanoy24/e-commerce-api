@@ -57,4 +57,8 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   category?: string;
+
+  @IsString()
+  @IsOptional() // since am using local file upload am not going to use is url
+  imageUrl?: string;
 }
