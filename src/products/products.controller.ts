@@ -10,6 +10,7 @@ import {
   Put,
   Query,
   Get,
+  Delete,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dtos/create-product.dto';
@@ -31,6 +32,7 @@ import {
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { PaginationQueryDto } from './dtos/pagination-query.dto';
 import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { ProductDto } from './dtos/product.dto';
 
 @ApiTags('products')
 @ApiBearerAuth('JWT-auth')
@@ -103,12 +105,10 @@ export class ProductsController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @ApiOperation({
     summary: 'Get a list of all products',
     description:
-      'Retrieves a paginated list of products. Public endpoint, no authentication required.',
+      'Retrieves a paginated list of products, with optional search by name (case-insensitive partial match). Public endpoint, no authentication required.',
   })
   @ApiQuery({
     name: 'page',
@@ -122,6 +122,13 @@ export class ProductsController {
     type: Number,
     description: 'Number of products per page (defaults to 10)',
   })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description:
+      'Search term for product name (case-insensitive, partial match). If empty or omitted, returns all products.',
+  })
   @ApiResponse({
     status: 200,
     description: 'Paginated list of products',
@@ -134,5 +141,75 @@ export class ProductsController {
       query.limit = query['pageSize'];
     }
     return this.productsService.findAll(query);
+  }
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get product details by ID',
+    description:
+      'Retrieves detailed information for a specific product. Public endpoint, no authentication required.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique ID of the product',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Product details retrieved successfully',
+    type: ProductDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Product not found',
+    schema: {
+      example: { error: 'Product not found' },
+    },
+  })
+  @HttpCode(HttpStatus.OK)
+  async findOne(@Param('id') id: string) {
+    return this.productsService.findOne(id);
+  }
+  @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete a product by ID',
+    description:
+      'Permanently deletes a product from the catalog. Requires Admin role.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The unique ID of the product to delete',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Product deleted successfully',
+    schema: {
+      example: { message: 'Product deleted successfully' },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized: Invalid or missing token',
+    schema: {
+      example: { error: 'Unauthorized' },
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden: Admin role required',
+    schema: {
+      example: { error: 'Access forbidden: Admin role required' },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Product not found',
+    schema: {
+      example: { error: 'Product not found' },
+    },
+  })
+  @HttpCode(HttpStatus.OK)
+  async delete(@Param('id') id: string) {
+    await this.productsService.delete(id);
+    return { message: 'Product deleted successfully' };
   }
 }

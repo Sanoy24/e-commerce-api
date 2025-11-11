@@ -58,11 +58,17 @@ export class ProductsService {
     });
   }
 
-  async findAll({ page = 1, limit = 10 }: PaginationQueryDto) {
+  async findAll({ page = 1, limit = 10, search }: PaginationQueryDto) {
+    const where =
+      search && search.trim()
+        ? { name: { contains: search.trim().toLowerCase() } } // , mode: 'insensitive' does not work on sqlite
+        : {};
+
     const skip = (page - 1) * limit;
 
     const [products, totalSize] = await Promise.all([
       this.prisma.product.findMany({
+        where,
         skip,
         take: limit,
         select: {
@@ -73,8 +79,10 @@ export class ProductsService {
           category: true,
         },
       }),
-      this.prisma.product.count(),
+      this.prisma.product.count({ where }),
     ]);
+
+    const totalPages = Math.ceil(totalSize / limit);
 
     return {
       Success: true,
@@ -82,8 +90,42 @@ export class ProductsService {
       Object: products,
       PageNumber: page,
       PageSize: limit,
+      TotalPages: totalPages,
       TotalSize: totalSize,
       Errors: [],
     };
+  }
+
+  async findOne(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        stock: true,
+        category: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    return product;
+  }
+  async delete(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    await this.prisma.product.delete({
+      where: { id },
+    });
   }
 }
