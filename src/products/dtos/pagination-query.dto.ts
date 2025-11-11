@@ -1,5 +1,5 @@
 // src/products/dto/pagination-query.dto.ts
-import { IsOptional, IsNumber, Min } from 'class-validator';
+import { IsOptional, IsNumber, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -26,6 +26,15 @@ export class PaginationQueryDto {
   @IsNumber({}, { message: 'Limit must be a number' })
   @Min(1, { message: 'Limit must be at least 1' })
   limit?: number = 10;
+
+  @ApiPropertyOptional({
+    description:
+      'Search term for product name (case-insensitive partial match). If empty or not provided, returns all products.',
+    example: 'mouse',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
 
   // To support 'pageSize' as alias, handle in controller if needed
 }
