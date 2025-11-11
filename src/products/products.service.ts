@@ -2,10 +2,13 @@ import {
   Injectable,
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { Product } from '@prisma/client';
+import { UpdateProductDto } from './dtos/update-product.dto';
+import { PaginationQueryDto } from './dtos/pagination-query.dto';
 
 @Injectable()
 export class ProductsService {
@@ -31,5 +34,56 @@ export class ProductsService {
       }
       throw new InternalServerErrorException('Failed to create product');
     }
+  }
+
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const existingProduct = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!existingProduct) {
+      throw new NotFoundException('Product not found');
+    }
+
+    // Prisma will only update provided fields
+    return this.prisma.product.update({
+      where: { id },
+      data: {
+        ...updateProductDto,
+        category:
+          updateProductDto.category !== undefined
+            ? updateProductDto.category
+            : existingProduct.category,
+      },
+    });
+  }
+
+  async findAll({ page = 1, limit = 10 }: PaginationQueryDto) {
+    const skip = (page - 1) * limit;
+
+    const [products, totalSize] = await Promise.all([
+      this.prisma.product.findMany({
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          stock: true,
+          category: true,
+        },
+      }),
+      this.prisma.product.count(),
+    ]);
+
+    return {
+      Success: true,
+      Message: 'Products retrieved successfully',
+      Object: products,
+      PageNumber: page,
+      PageSize: limit,
+      TotalSize: totalSize,
+      Errors: [],
+    };
   }
 }
