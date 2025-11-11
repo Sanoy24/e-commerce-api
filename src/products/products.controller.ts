@@ -12,6 +12,10 @@ import {
   Get,
   Delete,
   UseInterceptors,
+  MaxFileSizeValidator,
+  ParseFilePipe,
+  UploadedFile,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dtos/create-product.dto';
@@ -21,6 +25,7 @@ import { Roles } from 'src/common/decorator/roles.decorator';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOperation,
@@ -35,6 +40,7 @@ import { PaginationQueryDto } from './dtos/pagination-query.dto';
 import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { ProductDto } from './dtos/product.dto';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('products')
 @Controller('products')
@@ -44,11 +50,53 @@ export class ProductsController {
   @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiConsumes('multipart/form-data')
   @Post()
-  async create(@Body() createProductDto: CreateProductDto, @Request() req) {
+  @ApiOperation({
+    summary: 'Create a new product',
+    description:
+      'Creates a new product in the catalog. Requires Admin role. Supports image upload.',
+  })
+  @ApiConsumes('multipart/form-data') // For Swagger file upload
+  @ApiBody({
+    description: 'Product data and optional image',
+    type: 'multipart/form-data',
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'Wireless Mouse' },
+        description: { type: 'string', example: 'Description...' },
+        price: { type: 'number', example: 29.99 },
+        stock: { type: 'number', example: 100 },
+        category: { type: 'string', example: 'Electronics' },
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: 'Product image (jpg, png, etc.)',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Product created successfully' })
+  @UseInterceptors(FileInterceptor('image')) // 'image' is form field name
+  @HttpCode(HttpStatus.CREATED)
+  async create(
+    @Body() createProductDto: CreateProductDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+          new FileTypeValidator({ fileType: /(jpg|jpeg|png|gif)$/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @Request() req,
+  ) {
     const product = await this.productsService.create(
       createProductDto,
       req.user.id,
+      file,
     );
     return {
       statusCode: HttpStatus.CREATED,
@@ -60,6 +108,7 @@ export class ProductsController {
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Update an existing product',
     description:
@@ -97,13 +146,27 @@ export class ProductsController {
       example: { error: 'Product not found' },
     },
   })
+  @UseInterceptors(FileInterceptor('image'))
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /(jpg|jpeg|png|gif)$/ }),
+        ],
+      }),
+    )
+    file?: Express.Multer.File,
   ) {
-    const product = await this.productsService.update(id, updateProductDto);
+    const product = await this.productsService.update(
+      id,
+      updateProductDto,
+      file,
+    );
     return product;
   }
 

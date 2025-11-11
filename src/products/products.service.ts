@@ -14,6 +14,9 @@ import {
   createResponse,
 } from 'src/common/helpers/response.helper';
 import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
+import { join } from 'path';
+import { writeFile } from 'fs/promises';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class ProductsService {
@@ -22,11 +25,19 @@ export class ProductsService {
   async create(
     createProductDto: CreateProductDto,
     userId: string,
+    file?: Express.Multer.File,
   ): Promise<BaseResponseDto> {
     try {
+      let imageUrl: string | null = null;
+      if (file) {
+        const uploadPath = join(process.cwd(), 'uploads', file.filename);
+        await writeFile(uploadPath, file.buffer); // Save file (Multer diskStorage handles this, but explicit if needed)
+        imageUrl = `/uploads/${file.filename}`; // Relative URL; serve via static in main.ts
+      }
       const product = await this.prisma.product.create({
         data: {
           ...createProductDto,
+          imageUrl,
           userId: userId,
         },
       });
@@ -41,13 +52,25 @@ export class ProductsService {
     }
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+    file?: Express.Multer.File,
+  ) {
     const existingProduct = await this.prisma.product.findUnique({
       where: { id },
     });
 
     if (!existingProduct) {
       throw new NotFoundException('Product not found');
+    }
+    let imageUrl = existingProduct.imageUrl;
+    if (file) {
+      // Delete old image if exists (implement unlink logic)
+      if (existingProduct.imageUrl) {
+        unlinkSync(join(process.cwd(), existingProduct.imageUrl));
+      }
+      imageUrl = `/uploads/${file.filename}`;
     }
 
     // Prisma will only update provided fields
@@ -59,6 +82,7 @@ export class ProductsService {
           updateProductDto.category !== undefined
             ? updateProductDto.category
             : existingProduct.category,
+        imageUrl,
       },
     });
     return createResponse('Product Updated Succssfully', product);
