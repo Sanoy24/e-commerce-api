@@ -5,6 +5,7 @@ import {
   IsEmail,
   MinLength,
   Matches,
+  IsOptional,
 } from 'class-validator';
 
 export class RegisterDto {
@@ -46,4 +47,7 @@ export class RegisterDto {
     },
   )
   password: string;
+
+  @IsOptional()
+  role?: string;
 }

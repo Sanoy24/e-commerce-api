@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common';
 import { SecurityService } from './security/security.service';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from 'src/auth/auth.module';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
     }),
   ],
-  providers: [SecurityService],
-  exports: [SecurityService, JwtModule],
+  providers: [SecurityService, AuthGuard],
+  exports: [SecurityService, JwtModule, AuthGuard],
 })
 export class CommonModule {}
