@@ -35,11 +35,11 @@ import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { ProductDto } from './dtos/product.dto';
 
 @ApiTags('products')
-@ApiBearerAuth('JWT-auth')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Post()
@@ -96,6 +96,7 @@ export class ProductsController {
     },
   })
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
@@ -207,6 +208,7 @@ export class ProductsController {
       example: { error: 'Product not found' },
     },
   })
+  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
   async delete(@Param('id') id: string) {
     await this.productsService.delete(id);
