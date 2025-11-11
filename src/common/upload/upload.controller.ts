@@ -21,6 +21,7 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
 } from '@nestjs/common';
+import { createResponse } from '../helpers/response.helper';
 
 @ApiTags('uploads')
 @Controller('uploads')
@@ -45,7 +46,7 @@ export class UploadController {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
-          callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+          callback(null, `product-${file.fieldname}-${uniqueSuffix}${ext}`);
         },
       }),
       fileFilter: (req, file, callback) => {
@@ -78,6 +79,6 @@ export class UploadController {
     file: Express.Multer.File,
   ) {
     const url = `uploads/${file.filename}`;
-    return { url };
+    return createResponse('file upload successfully', { url });
   }
 }
