@@ -150,7 +150,7 @@ docker-compose down
    }
 ```
 
-## 📚 API Documentation
+## API Documentation
 
 Once the application is running, access the interactive API documentation:
 
@@ -191,7 +191,7 @@ Once the application is running, access the interactive API documentation:
 
 - `POST /uploads` - upload product image
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Unit tests
@@ -238,7 +238,7 @@ Notes:
 - The Compose service is named `api` and depends on the `db` service being healthy.
 - The stack seeds the database on startup via `npx prisma db seed` in the API command.
 
-## 🗄️ Database Schema
+## Database Schema
 
 ### User Model
 
@@ -275,7 +275,7 @@ Notes:
 - `productId` (Foreign Key to Product)
 - `quantity` (Integer, Default: 1)
 
-## 🔒 Security Features
+## Security Features
 
 - **Password Hashing**: Bcrypt for secure password storage
 - **JWT Authentication**: Stateless authentication
@@ -284,7 +284,7 @@ Notes:
 - **CORS Protection**: Configurable CORS policies
 - **Rate Limiting**: Ready for rate limiting implementation
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Deployment
 
