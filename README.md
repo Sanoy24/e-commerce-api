@@ -5,7 +5,7 @@ A robust, scalable RESTful API built with NestJS for e-commerce applications. Fe
 ## Features
 
 - **Authentication & Authorization**: JWT-based authentication with role-based access control (Admin/Customer)
-- **User Management**: User registration, login, and profile management
+- **User Management**: User registration and login
 - **Product Management**: CRUD operations for products with categories and inventory tracking
 - **Order Processing**: Complete order lifecycle management with order items
 - **Database**: PostgreSQL with Prisma ORM for type-safe database operations
@@ -128,6 +128,8 @@ docker-compose down
 - When using Docker for setup, the application automatically seeds two users into the database:
 
 1. Admin user
+
+   ```bash
    {
    "email": "admin@example.com",
    "password": "Admin@123",
@@ -135,14 +137,18 @@ docker-compose down
    "role": "ADMIN"
    }
 
-2. Customer user
-   {
-   "email":"test@example.com"
-   "password:"Pass@123"
-   "username":"Uuser1"
-   "role":"CUSTOMER
+   ```
 
+2. Customer user
+
+```bash
+   {
+   "email":"test@example.com",
+   "password:"Pass@123",
+   "username":"user1",
+   "role":"CUSTOMER"
    }
+```
 
 ## 📚 API Documentation
 
@@ -157,7 +163,11 @@ Once the application is running, access the interactive API documentation:
 2. **Login**: `POST /api/v1/auth/login`
 3. **Use Token**: Include `Authorization: Bearer <token>` in subsequent requests
 
-## 🔐 API Endpoints
+## API Endpoints
+
+### Healthcheck
+
+- `GET /healthcheck` - check if the server and db is healthy
 
 ### Authentication
 
