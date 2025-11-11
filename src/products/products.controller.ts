@@ -11,6 +11,7 @@ import {
   Query,
   Get,
   Delete,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dtos/create-product.dto';
@@ -33,6 +34,7 @@ import { UpdateProductDto } from './dtos/update-product.dto';
 import { PaginationQueryDto } from './dtos/pagination-query.dto';
 import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { ProductDto } from './dtos/product.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('products')
 @Controller('products')
@@ -106,6 +108,7 @@ export class ProductsController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({
     summary: 'Get a list of all products',
     description:

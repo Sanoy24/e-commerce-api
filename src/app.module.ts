@@ -8,6 +8,10 @@ import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { AuthModule } from './auth/auth.module';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { CacheModule } from '@nestjs/cache-manager';
+import { APP_GUARD } from '@nestjs/core';
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 
 @Module({
   imports: [
@@ -16,7 +20,19 @@ import { AuthModule } from './auth/auth.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    CommonModule, // ← Now JwtModule sees the loaded env
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // Time to live in ms (60 seconds)
+        limit: 10, // Max requests per TTL window
+      },
+    ]),
+    CacheModule.register({
+      ttl: 300, // Default TTL: 5 minutes (in seconds)
+      max: 100, // Max items in cache (optional, for in-memory)
+      isGlobal: true, // // Make cache available globally
+    }),
+
+    CommonModule,
     PrismaModule,
     UsersModule,
     ProductsModule,
@@ -24,6 +40,12 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: CustomThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

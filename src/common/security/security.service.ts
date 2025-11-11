@@ -8,7 +8,7 @@ export class SecurityService {
   logger = new Logger(SecurityService.name);
 
   async hashPassword(password: string): Promise<string> {
-    const saltRounds = 10;
+    const saltRounds = Number(process.env.SALT_VALUE);
     return await bcrypt.hash(password, saltRounds);
   }
   async comparePassword(password: string, hash: string): Promise<boolean> {
@@ -19,9 +19,6 @@ export class SecurityService {
     payload: Record<string, any>,
   ): Promise<{ accessToken: string }> {
     const token = await this.jwtService.signAsync(payload);
-    this.logger.debug(
-      `Generated JWT token for payload: ${JSON.stringify(payload)}`,
-    );
     return { accessToken: token };
   }
 
