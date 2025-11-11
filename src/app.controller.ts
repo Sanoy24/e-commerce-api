@@ -26,7 +26,7 @@ export class AppController {
       },
     },
   })
-  heakthCheck(): BaseResponseDto {
+  async heakthCheck(): Promise<BaseResponseDto> {
     return this.appService.healthCheck();
   }
 }
