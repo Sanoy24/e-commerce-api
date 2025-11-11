@@ -54,7 +54,6 @@ export class AuthService {
     const { email, password } = loginDto;
 
     const user = await this.userService.getUserByEmail(email);
-    this.logger.debug(`User fetched for login: ${JSON.stringify(user)}`);
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isMatch = await this.securityService.comparePassword(

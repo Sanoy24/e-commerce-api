@@ -6,9 +6,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dtos/create-product.dto';
-import { Product } from '@prisma/client';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { PaginationQueryDto } from './dtos/pagination-query.dto';
+import { BaseResponseDto } from 'src/common/dtos/base-response.dto';
+import {
+  createPaginatedResponse,
+  createResponse,
+} from 'src/common/helpers/response.helper';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 
 @Injectable()
 export class ProductsService {
@@ -17,7 +22,7 @@ export class ProductsService {
   async create(
     createProductDto: CreateProductDto,
     userId: string,
-  ): Promise<Product> {
+  ): Promise<BaseResponseDto> {
     try {
       const product = await this.prisma.product.create({
         data: {
@@ -26,7 +31,7 @@ export class ProductsService {
         },
       });
 
-      return product;
+      return createResponse('Product create Succssfully', product);
     } catch (error) {
       if (error.code === 'P2002') {
         // Prisma unique constraint violation
@@ -46,7 +51,7 @@ export class ProductsService {
     }
 
     // Prisma will only update provided fields
-    return this.prisma.product.update({
+    const product = this.prisma.product.update({
       where: { id },
       data: {
         ...updateProductDto,
@@ -56,9 +61,14 @@ export class ProductsService {
             : existingProduct.category,
       },
     });
+    return createResponse('Product Updated Succssfully', product);
   }
 
-  async findAll({ page = 1, limit = 10, search }: PaginationQueryDto) {
+  async findAll({
+    page = 1,
+    limit = 10,
+    search,
+  }: PaginationQueryDto): Promise<PaginatedResponseDto> {
     const where =
       search && search.trim()
         ? { name: { contains: search.trim().toLowerCase() } } // , mode: 'insensitive' does not work on sqlite
@@ -83,20 +93,16 @@ export class ProductsService {
     ]);
 
     const totalPages = Math.ceil(totalSize / limit);
-
-    return {
-      Success: true,
-      Message: 'Products retrieved successfully',
-      Object: products,
-      PageNumber: page,
-      PageSize: limit,
-      TotalPages: totalPages,
-      TotalSize: totalSize,
-      Errors: [],
-    };
+    return createPaginatedResponse(
+      'Products retrieved successfully',
+      products,
+      page,
+      limit,
+      totalSize,
+    );
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<BaseResponseDto> {
     const product = await this.prisma.product.findUnique({
       where: { id },
       select: {
@@ -113,7 +119,7 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    return product;
+    return createResponse('Product fetched successfully', product);
   }
   async delete(id: string) {
     const product = await this.prisma.product.findUnique({
@@ -127,5 +133,6 @@ export class ProductsService {
     await this.prisma.product.delete({
       where: { id },
     });
+    return createResponse('Product deleted successfully', null);
   }
 }
