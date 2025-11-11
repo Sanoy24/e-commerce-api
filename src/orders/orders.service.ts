@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dtos/create-order.dto';
+import { createResponse } from 'src/common/helpers/response.helper';
 
 @Injectable()
 export class OrdersService {
@@ -69,7 +70,7 @@ export class OrdersService {
       );
 
       // Fetch and return full order details
-      return tx.order.findUnique({
+      const orderResponse = await tx.order.findUnique({
         where: { id: order.id },
         include: {
           orderItems: {
@@ -86,11 +87,12 @@ export class OrdersService {
           },
         },
       });
+      return createResponse('Order created successfully', orderResponse);
     });
   }
 
   async findUserOrders(userId: string) {
-    return this.prisma.order.findMany({
+    const userOrders = await this.prisma.order.findMany({
       where: { userId },
       select: {
         id: true,
@@ -100,5 +102,6 @@ export class OrdersService {
       },
       orderBy: { createdAt: 'desc' }, // Optional: sort by recent first
     });
+    return createResponse('Orders fetched successfully', userOrders);
   }
 }

@@ -27,6 +27,7 @@ import { Roles } from 'src/common/decorator/roles.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { OrderSummaryDto } from './dtos/order-summary.dto';
+import { BaseResponseDto } from 'src/common/dtos/base-response.dto';
 
 @ApiTags('Orders')
 @ApiBearerAuth('JWT-auth')
@@ -48,7 +49,7 @@ export class OrdersController {
   @ApiResponse({
     status: 201,
     description: 'Order placed successfully',
-    type: OrderResponseDto,
+    type: BaseResponseDto,
   })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized: Invalid or missing token',
@@ -84,7 +85,7 @@ export class OrdersController {
   @ApiResponse({
     status: 200,
     description: 'List of user orders (empty array if none)',
-    type: [OrderSummaryDto],
+    type: [BaseResponseDto],
   })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized: Invalid or missing token',
