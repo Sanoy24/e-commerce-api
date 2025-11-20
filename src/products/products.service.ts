@@ -22,12 +22,14 @@ export class ProductsService {
   async create(
     createProductDto: CreateProductDto,
     userId: string,
+    categoryId: string,
   ): Promise<BaseResponseDto> {
     try {
       const product = await this.prisma.product.create({
         data: {
           ...createProductDto,
           userId: userId,
+          categoryId: categoryId,
         },
       });
 
@@ -55,10 +57,10 @@ export class ProductsService {
       where: { id },
       data: {
         ...updateProductDto,
-        category:
-          updateProductDto.category !== undefined
-            ? updateProductDto.category
-            : existingProduct.category,
+        categoryId:
+          updateProductDto.categoryId !== undefined
+            ? updateProductDto.categoryId
+            : existingProduct.categoryId,
       },
     });
     return createResponse('Product Updated Succssfully', product);

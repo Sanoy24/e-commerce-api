@@ -42,11 +42,16 @@ export class ProductsController {
   @ApiBearerAuth('JWT-auth')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ADMIN')
-  @Post()
-  async create(@Body() createProductDto: CreateProductDto, @Request() req) {
+  @Post(':category_id')
+  async create(
+    @Body() createProductDto: CreateProductDto,
+    @Param('') category_id: string,
+    @Request() req,
+  ) {
     const product = await this.productsService.create(
       createProductDto,
       req.user.id,
+      category_id,
     );
     return {
       statusCode: HttpStatus.CREATED,

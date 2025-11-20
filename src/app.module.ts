@@ -12,6 +12,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { APP_GUARD } from '@nestjs/core';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
     ProductsModule,
     OrdersModule,
     AuthModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [
